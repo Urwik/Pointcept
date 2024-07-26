@@ -145,18 +145,6 @@ data = dict(
         type=dataset_type,
         split="validation",
         data_root=test_root,
-        # transform=[
-        #     dict(type="PointClip", point_cloud_range=(-75.2, -75.2, -4, 75.2, 75.2, 2)),
-        #     dict(type="Copy", keys_dict={"segment": "origin_segment"}),
-        #     dict(
-        #         type="GridSample",
-        #         grid_size=0.025,
-        #         hash_type="fnv",
-        #         mode="train",
-        #         keys=("coord", "strength", "segment"),
-        #         return_inverse=True,
-        #     ),
-        # ],
         test_mode=True,
         test_cfg=dict(
             voxelize=dict(

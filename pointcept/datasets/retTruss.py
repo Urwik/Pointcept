@@ -25,6 +25,7 @@ class retTrussDataset(DefaultDataset):
         self.coord_idx = [0, 1, 2]
         self.feat_idx = [4, 5, 6, 7]
         self.label_idx = [3]
+        self.cfg = None
         
         CONFIG_FILE_PATH = '/home/arvc/Fran/workSpaces/nn_ws/binary_segmentation/config/train.yaml'
         

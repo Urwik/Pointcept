@@ -39,7 +39,7 @@ def main():
 
 if __name__ == "__main__":
 
-    exp_name = "xyzc"
+    exp_name = "c"
     sys.argv.extend(["--config-file", f"exp/retTruss/{exp_name}/config.py"])
     sys.argv.extend(["--options", f"save_path=exp/retTruss/{exp_name}", f"weight=exp/retTruss/{exp_name}/model/model_best.pth"])
     main()
