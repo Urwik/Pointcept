@@ -17,74 +17,29 @@ from .defaults import DefaultDataset
 @DATASETS.register_module()
 class retTrussDataset(DefaultDataset):
     def __init__(self, ignore_index=-1, **kwargs):
-        self.ignore_index = ignore_index
+        
+        self.sequences = [0,1,2,3,4,5,6,7,8,9]
+        self.coord_idx = [0, 1, 2]
+        self.label_idx = [3]
+        self.force_binary_labels = True
+        
+        self.exp_cfg = kwargs.pop('exp_cfg')
+        self.feat_idx = self.exp_cfg['feat_idx']
+        self.normalize = self.exp_cfg['normalize']
+        
+        print(f"FEAT IDX: {self.feat_idx}")
+        print(f"NORMALIZE: {self.normalize}")
+        
+        # CONFIG_FILE_PATH = '/home/arvc/Fran/workSpaces/nn_ws/binary_segmentation/config/train.yaml'
+        # with open(CONFIG_FILE_PATH, 'r') as file:
+        #     train_config = yaml.safe_load(file)
+            
+        # self.cfg = train_config
+        # self._parse_config()
+        
         self.learning_map = self.get_learning_map(ignore_index)
         self.learning_map_inv = self.get_learning_map_inv(ignore_index)
-        self.sequences = [0,1,2,3,4,5,6,7,8,9]
-        self.fixed_size = False
-        self.coord_idx = [0, 1, 2]
-        self.feat_idx = [4, 5, 6, 7]
-        self.label_idx = [3]
-        self.cfg = None
-        
-        CONFIG_FILE_PATH = '/home/arvc/Fran/workSpaces/nn_ws/binary_segmentation/config/train.yaml'
-        
-        with open(CONFIG_FILE_PATH, 'r') as file:
-            train_config = yaml.safe_load(file)
-            
-        self.cfg = train_config
-        
-        self._parse_config()
         super().__init__(ignore_index=ignore_index, **kwargs)
-
-
-    def _parse_config(self):
-            
-            self.mode = self.cfg['dataset']['mode']
-            if self.mode == "train":
-                self.root_dir = self.cfg['dataset']['train_dir']
-            elif self.mode == "test":
-                self.root_dir = self.cfg['dataset']['test_dir']
-            else:
-                print(f"DATASET MODE NOT SPECIFIED")
-                exit()
-
-            try:
-                self.label_idx = self.cfg['dataset']['label_idx']
-            except:
-                pass
-            try:
-                self.coord_idx = self.cfg['dataset']['coord_idx']
-            except:
-                pass
-            try:
-                self.feat_idx = self.cfg['dataset']['feat_idx']
-            except:
-                pass
-            try:
-                self.sequences = self.cfg['dataset']['sequences']
-            except:
-                pass
-            try:
-                self.fixed_size = self.cfg['dataset']['fixed_size']
-            except:
-                pass
-            try:
-                self.normalize = self.cfg['dataset']['normalize']
-            except:
-                pass
-            try:
-                self.force_binary_labels = self.cfg['dataset']['force_binary_labels']
-            except:
-                pass
-            try:
-                self.add_range_feature = self.cfg['dataset']['add_range_feature']
-            except:
-                pass
-            try:
-                self.enable_weights = self.cfg['dataset']['compute_weights']
-            except:
-                pass
             
 
     def get_data_list(self):
@@ -101,12 +56,8 @@ class retTrussDataset(DefaultDataset):
                     if int(root_seq) in self.sequences:
                         
                         sufix = "ply_xyzln"
-                        # if self.fixed_size:
-                        #     sufix = "ply_xyzln_fixedSize"
-                        # else:
-                        #     sufix = "ply_xyzln"
                             
-                        clouds_path = os.path.join(self.root_dir, root_seq, sufix)
+                        clouds_path = os.path.join(self.data_root, root_seq, sufix)
                         print(f"\tSEQ PATH: {clouds_path}")
                         for file in os.listdir(clouds_path):
                             if file.endswith(".ply"):
@@ -126,6 +77,8 @@ class retTrussDataset(DefaultDataset):
         features = data[:, self.feat_idx].copy()
         labels = data[:, self.label_idx].copy()
         labels = labels.astype(np.int64)
+        if len(labels.shape) > 1:
+            labels= labels.flatten()
         
         if self.feat_idx[:3] == [0, 1, 2]:
             if self.normalize:
@@ -136,11 +89,11 @@ class retTrussDataset(DefaultDataset):
                 xyz /= furthest_distance
                 features[:, [0, 1, 2]] = xyz
 
-        if self.add_range_feature:
-            xyz = coords.copy()
-            range = np.sqrt(np.sum(abs(xyz) ** 2, axis=-1))
-            range = range[:, None]
-            features = np.hstack((features, range))
+        # if self.add_range_feature:
+        #     xyz = coords.copy()
+        #     range = np.sqrt(np.sum(abs(xyz) ** 2, axis=-1))
+        #     range = range[:, None]
+        #     features = np.hstack((features, range))
 
         if self.force_binary_labels:
             labels[labels > 0] = 1
@@ -167,39 +120,39 @@ class retTrussDataset(DefaultDataset):
     #     data_dict = self.transform(data_dict)
     #     return data_dict
 
-    def prepare_test_data(self, idx):
-        # load data
-        data_dict = self.get_data(idx)
-        data_dict = self.transform(data_dict)
-        result_dict = dict(segment=data_dict.pop("segment"), name=data_dict.pop("name"))
+    # def prepare_test_data(self, idx):
+    #     # load data
+    #     data_dict = self.get_data(idx)
+    #     data_dict = self.transform(data_dict)
+    #     result_dict = dict(segment=data_dict.pop("segment"), name=data_dict.pop("name"))
         
-        if "origin_segment" in data_dict:
-            assert "inverse" in data_dict
-            result_dict["origin_segment"] = data_dict.pop("origin_segment")
-            result_dict["inverse"] = data_dict.pop("inverse")
+    #     if "origin_segment" in data_dict:
+    #         assert "inverse" in data_dict
+    #         result_dict["origin_segment"] = data_dict.pop("origin_segment")
+    #         result_dict["inverse"] = data_dict.pop("inverse")
 
-        data_dict_list = []
-        for aug in self.aug_transform:
-            data_dict_list.append(aug(deepcopy(data_dict)))
+    #     data_dict_list = []
+    #     for aug in self.aug_transform:
+    #         data_dict_list.append(aug(deepcopy(data_dict)))
 
-        fragment_list = []
-        for data in data_dict_list:
-            if self.test_voxelize is not None:
-                data_part_list = self.test_voxelize(data)
-            else:
-                data["index"] = np.arange(data["coord"].shape[0])
-                data_part_list = [data]
-            for data_part in data_part_list:
-                if self.test_crop is not None:
-                    data_part = self.test_crop(data_part)
-                else:
-                    data_part = [data_part]
-                fragment_list += data_part
+    #     fragment_list = []
+    #     for data in data_dict_list:
+    #         if self.test_voxelize is not None:
+    #             data_part_list = self.test_voxelize(data)
+    #         else:
+    #             data["index"] = np.arange(data["coord"].shape[0])
+    #             data_part_list = [data]
+    #         for data_part in data_part_list:
+    #             if self.test_crop is not None:
+    #                 data_part = self.test_crop(data_part)
+    #             else:
+    #                 data_part = [data_part]
+    #             fragment_list += data_part
 
-        for i in range(len(fragment_list)):
-            fragment_list[i] = self.post_transform(fragment_list[i])
-        result_dict["fragment_list"] = fragment_list
-        return result_dict
+    #     for i in range(len(fragment_list)):
+    #         fragment_list[i] = self.post_transform(fragment_list[i])
+    #     result_dict["fragment_list"] = fragment_list
+    #     return result_dict
 
 
     @staticmethod

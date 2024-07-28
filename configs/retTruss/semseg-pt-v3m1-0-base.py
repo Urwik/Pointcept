@@ -6,6 +6,11 @@ mix_prob = 0.8
 empty_cache = False
 enable_amp = True
 
+exp_cfg = dict(
+    feat_idx=[0,1,2],
+    normalize=False,
+)
+
 # model settings
 model = dict(
     type="DefaultSegmentorV2",
@@ -13,7 +18,7 @@ model = dict(
     backbone_out_channels=64,
     backbone=dict(
         type="PT-v3m1",
-        in_channels=1,
+        in_channels=len(exp_cfg["feat_idx"]),
         order=["z", "z-trans", "hilbert", "hilbert-trans"],
         stride=(2, 2, 2, 2),
         enc_depths=(2, 2, 2, 6, 2),
@@ -115,6 +120,7 @@ data = dict(
         ],
         test_mode=False,
         ignore_index=ignore_index,
+        exp_cfg=exp_cfg,
     ),
     val=dict(
         type=dataset_type,
@@ -140,6 +146,7 @@ data = dict(
         ],
         test_mode=False,
         ignore_index=ignore_index,
+        exp_cfg=exp_cfg,
     ),
     test=dict(
         type=dataset_type,
@@ -173,5 +180,6 @@ data = dict(
             }]]
         ),
         ignore_index=ignore_index,
+        exp_cfg=exp_cfg,
     ),
 )
