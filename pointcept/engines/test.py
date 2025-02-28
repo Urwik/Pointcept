@@ -356,10 +356,12 @@ class SemSegTester(TesterBase):
 @TESTERS.register_module()
 class retTrussTester(TesterBase):
     def test(self):
+        import time
         assert self.test_loader.batch_size == 1
         logger = get_root_logger()
         logger.info(">>>>>>>>>>>>>>>> Start Evaluation >>>>>>>>>>>>>>>>")
 
+        start_time = time.time()
         batch_time = AverageMeter()
         intersection_meter = AverageMeter()
         union_meter = AverageMeter()
@@ -431,8 +433,6 @@ class retTrussTester(TesterBase):
 
                 np.save(pred_save_path, pred)
             
-            
-
             if pred_array is None:
                 pred_array = pred
             else:
@@ -442,7 +442,6 @@ class retTrussTester(TesterBase):
                 segment_array = segment
             else:
                 segment_array = np.concatenate((segment_array, segment), axis=0)
-            
             
             
             tmp_metrics = Metrics()
@@ -527,7 +526,10 @@ class retTrussTester(TesterBase):
                         accuracy=accuracy_class[i],
                     )
                 )
-                
+            
+            end_time = time.time()
+            elapsed_time = end_time - start_time
+            print(f"Elapsed time: {elapsed_time*1000:.2f} ms | Memory: {torch.cuda.memory_reserved()}")
             self.metrics.set_metrics(pred_array, segment_array)
             self.metrics.print()
             logger.info("<<<<<<<<<<<<<<<<< End Evaluation <<<<<<<<<<<<<<<<<")

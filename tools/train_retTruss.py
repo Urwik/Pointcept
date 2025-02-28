@@ -48,6 +48,6 @@ def main():
 
 if __name__ == "__main__":
     os.environ["CUDA_VISIBLE_DEVICES"] = "1"
-    sys.argv.extend(["--config-file", "configs/retTruss/semseg-pt-v3m1-0-base.py"])
+    sys.argv.extend(["--config-file", "exp/retTruss/c/config.py"])
     sys.argv.extend(["--options", "save_path=exp/retTruss/xyz"])
     main()

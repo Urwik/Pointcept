@@ -57,6 +57,24 @@ class TrainerBase:
             h.trainer = weakref.proxy(self)
         self.hooks.extend(hooks)
 
+    def count_parameters_and_memory(self):
+        total_params = 0
+        allocated_memory = 0  # in bytes
+
+        for param in self.model.parameters():
+            # Number of parameters in the current layer
+            num_params = param.numel()
+            # Total parameters
+            total_params += num_params
+        
+        allocated_memory = torch.cuda.memory_allocated()
+        print(f"Allocated memory: {allocated_memory}")
+        print(f"Cached memory: {torch.cuda.memory_cached()}")
+        print(f"Reserved memory: {torch.cuda.memory_reserved()}")
+
+        return total_params, allocated_memory
+
+
     def train(self):
         with EventStorage() as self.storage:
             # => before train
@@ -145,12 +163,14 @@ class Trainer(TrainerBase):
         self.register_hooks(self.cfg.hooks)
 
     def train(self):
+        import time
         with EventStorage() as self.storage:
             # => before train
             self.before_train()
             self.logger.info(">>>>>>>>>>>>>>>> Start Training >>>>>>>>>>>>>>>>")
             for self.epoch in range(self.start_epoch, self.max_epoch):
                 # => before epoch
+                start_time = time.time()
                 # TODO: optimize to iteration based
                 if comm.get_world_size() > 1:
                     self.train_loader.sampler.set_epoch(self.epoch)
@@ -169,6 +189,11 @@ class Trainer(TrainerBase):
                     # => after_step
                     self.after_step()
                 # => after epoch
+                end_time = time.time()
+                elapsed = (end_time - start_time) * 1000
+                params, memory = self.count_parameters_and_memory()
+                print(f"MODEL: PTV3 | PARAMETERS: {params} | MEMORY: {memory} | TIME: {elapsed:.2f}ms")
+                return
                 self.after_epoch()
             # => after train
             self.after_train()
