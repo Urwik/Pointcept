@@ -17,20 +17,17 @@ from engines.utils.csv_parser import csvTestStruct
 
 
 def test(features, cfg_path):
-    # datasets = ["00", "01", "02", "03"]
-    datasets = ["orto", "crossed"]
-    
-    # datasets = ["00"]
-    
+    # datasets = ["00", "01", "02"]
+    datasets = ["orthogonal", "crossed2"]
     
     for dataset in datasets:
         # args = default_argument_parser().parse_args()
-        os.makedirs(f'/home/arvc/Fran/workSpaces/nn_ws/binary_segmentation/repos/Pointcept/exp/retTruss/{features}/{dataset}', exist_ok=True)
+        os.makedirs(f'/home/arvc/Fran/workSpaces/nn_ws/binary_segmentation/repos/Pointcept/exp/retTruss/{features}/arvc_truss/{dataset}', exist_ok=True)
         cfg = default_config_parser(cfg_path, options=None)
         cfg = default_setup(cfg)
-        cfg.test_root = f'/home/arvc/Fran/datasets/complex_structure/{dataset}/ply_xyzln'
+        cfg.test_root = f'/home/arvc/Fran/datasets/arvc_truss/test/{dataset}/ply_xyzln'
         cfg.data['test']['data_root'] = cfg.test_root
-        cfg.save_path = f'exp/retTruss/{features}/{dataset}'
+        cfg.save_path = f'exp/retTruss/{features}/arvc_truss/{dataset}'
         cfg.weight = f'/home/arvc/Fran/workSpaces/nn_ws/binary_segmentation/repos/Pointcept/exp/retTruss/{features}/model/model_best.pth'
         
         csv_test = csvTestStruct()
@@ -72,8 +69,8 @@ def test(features, cfg_path):
         
 
 if __name__ == "__main__":
-    os.environ["CUDA_VISIBLE_DEVICES"] = "1"
-    features_list = ["c"]
+    os.environ["CUDA_VISIBLE_DEVICES"] = "1" # Set the GPU device, mandatory. If not working, set manually before running the script.
+    features_list = ["xyz", "xyzc", "nxnynz", "xyznxnynz"]
     
     for features in features_list:
         cfg_path = f"/home/arvc/Fran/workSpaces/nn_ws/binary_segmentation/repos/Pointcept/exp/retTruss/{features}/config.py"
