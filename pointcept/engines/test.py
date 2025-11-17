@@ -47,6 +47,7 @@ class TesterBase:
         if self.verbose:
             self.logger.info(f"Save path: {cfg.save_path}")
             self.logger.info(f"Config:\n{cfg.pretty_text}")
+            self.logger.info(f"Save pred: {cfg.save_pred}")
         if model is None:
             self.logger.info("=> Building model ...")
             self.model = self.build_model()
@@ -431,7 +432,8 @@ class retTrussTester(TesterBase):
                     pred = pred[data_dict["inverse"]]
                     segment = data_dict["origin_segment"]
 
-                np.save(pred_save_path, pred)
+                if self.cfg.save_pred:
+                    np.save(pred_save_path, pred)
             
             if pred_array is None:
                 pred_array = pred
